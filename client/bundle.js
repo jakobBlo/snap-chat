@@ -2,7 +2,7 @@
 'use strict';
 
 var io = require('socket.io-client');
-var socket = io.connect("http://localhost:3000");
+var socket = io.connect();
 
 var NodeRSA = require('node-rsa');
 var key = new NodeRSA({ b: 512 });
@@ -16,9 +16,9 @@ var decrypt = new JSEncrypt();
 encrypt.setPublicKey(publicKey);
 decrypt.setPrivateKey(privateKey);
 
-console.log(decrypt.decrypt(encrypt.encrypt("yey!")));
-
 var token = null;
+var userName = null;
+var userInfo = {};
 
 var registerButton = document.getElementById("register-submit");
 registerButton.onclick = function () {
@@ -37,14 +37,90 @@ loginButton.onclick = function () {
 var searchButton = document.getElementById("search-submit");
 searchButton.onclick = function () {
     var userName = document.getElementById('search-username').value;
-    socket.emit("search", { userName: userName });
+    socket.emit("search", { token: token, params: { userName: userName } });
+};
+
+var contentButton = document.getElementById("content-submit");
+contentButton.onclick = function () {
+    var userName = document.getElementById('content-username').value;
+    var message = document.getElementById('content-text').value;
+    if (userInfo[userName]) {
+        encrypt.setPublicKey(userInfo[userName].publicKey);
+        message = encrypt.encrypt(message);
+        socket.emit("create-content", { token: token, content: { "toUser": userName, "message": message } });
+    } else {
+        console.log("search for user first");
+    }
+};
+
+var contentsearchButton = document.getElementById("search-content-submit");
+contentsearchButton.onclick = function () {
+    var userName = document.getElementById('search-content-user').value;
+    socket.emit("content-search", { token: token, params: { "toUser": userName } });
 };
 
 function notifyEmit(e, data) {
-    alert("Event " + e + " with Data: " + JSON.stringify(data));
+    console.log("Event " + e + " with Data: " + JSON.stringify(data));
 
     if (e === "login" && data.token) {
         token = data.token;
+        userName = data.userName;
+    }
+
+    if (e === "search") {
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = data[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var user = _step.value;
+
+                if (user.userName) {
+                    userInfo[user.userName] = user;
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+    }
+
+    if (e === "content-search" && data[0] && data[0].toUser == userName) {
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+            for (var _iterator2 = data[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var msg = _step2.value;
+
+                alert(decrypt.decrypt(msg.message));
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                }
+            } finally {
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
+                }
+            }
+        }
     }
 }
 
@@ -53,6 +129,15 @@ socket.on('register', function (data) {
 });
 socket.on('login', function (data) {
     return notifyEmit('login', data);
+});
+socket.on('search', function (data) {
+    return notifyEmit('search', data);
+});
+socket.on('create-content', function (data) {
+    return notifyEmit('create-content', data);
+});
+socket.on('content-search', function (data) {
+    return notifyEmit('content-search', data);
 });
 
 },{"node-rsa":134,"socket.io-client":188}],2:[function(require,module,exports){

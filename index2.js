@@ -3,8 +3,8 @@ let browserify = require("browserify")
 let express = require('express');
 let app = express();
 
-let server = app.listen(3000, function() {
-	console.log('Example app listening on port 3000!');
+let server = app.listen(4000, function() {
+	console.log('Example app listening on port 4000!');
 });
 
 let io = require('socket.io')(server)

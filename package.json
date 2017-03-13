@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index"
+    "dev": "node index",
+    "dev2": "node index2"
   },
   "repository": {
     "type": "git",
@@ -25,7 +26,7 @@
     "express": "^4.15.0",
     "jsencrypt": "^2.3.1",
     "node-rsa": "^0.4.2",
-    "oh.snap": "git+https://github.com/manuzhh/oh.snap.git",
+    "oh.snap": "^0.1.0",
     "socket.io": "^1.7.3",
     "socket.io-client": "^1.7.3"
   },
